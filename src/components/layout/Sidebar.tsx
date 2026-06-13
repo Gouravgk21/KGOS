@@ -8,7 +8,7 @@ import {
   GraduationCap, Users, Building2, UserPlus, Package, 
   Truck, TrendingUp, FolderKanban, Settings, 
   ChevronLeft, ChevronRight, Microscope, BookOpen, Briefcase, Network,
-  Cpu, FileText, Radar, ShieldAlert
+  Cpu, FileText, Radar, ShieldAlert, IndianRupee
 } from 'lucide-react';
 import { NAV_ITEMS } from '@/utils/constants';
 import { useAppStore } from '@/store/useAppStore';
@@ -36,7 +36,8 @@ const ICONS: Record<string, React.ComponentType<any>> = {
   Cpu,
   FileText,
   Radar,
-  ShieldAlert
+  ShieldAlert,
+  IndianRupee
 };
 
 export default function Sidebar() {

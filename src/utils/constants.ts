@@ -140,7 +140,8 @@ export const NAV_ITEMS: NavGroup[] = [
       { path: '/self-mastery/health', label: 'Health', icon: 'Heart' },
       { path: '/self-mastery/habits', label: 'Habits', icon: 'CheckCircle' },
       { path: '/self-mastery/development', label: 'Development', icon: 'GraduationCap' },
-      { path: '/self-mastery/relationships', label: 'Relationships', icon: 'Users' }
+      { path: '/relationships', label: 'Relationships', icon: 'Users' },
+      { path: '/wealth', label: 'Wealth OS', icon: 'IndianRupee' }
     ]
   },
   {
