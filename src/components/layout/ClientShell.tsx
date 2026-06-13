@@ -1,0 +1,44 @@
+'use client';
+
+import React, { useEffect } from 'react';
+import Sidebar from './Sidebar';
+import Topbar from './Topbar';
+import MobileNav from './MobileNav';
+import SearchPalette from '../ui/SearchPalette';
+import QuickActions from '../widgets/QuickActions';
+import { seedDatabase } from '@/db/seed';
+
+export default function ClientShell({ children }: { children: React.ReactNode }) {
+  // Seed database on mount
+  useEffect(() => {
+    seedDatabase().catch((err) => console.error('Seeding error:', err));
+  }, []);
+
+  return (
+    <div className="app-shell flex h-screen w-screen overflow-hidden bg-black text-zinc-100">
+      {/* Sidebar - Desktop Only */}
+      <div className="hidden md:flex flex-col h-full">
+        <Sidebar />
+      </div>
+
+      {/* Main Panel */}
+      <div className="main-area flex-1 flex flex-col min-w-0 h-full">
+        <Topbar />
+        
+        {/* Scrollable content area */}
+        <div className="main-content flex-1 overflow-y-auto pb-20 md:pb-6 p-6">
+          {children}
+        </div>
+      </div>
+
+      {/* Mobile Navigation - Mobile Only */}
+      <div className="md:hidden">
+        <MobileNav />
+      </div>
+
+      {/* Floating UI Elements */}
+      <QuickActions />
+      <SearchPalette />
+    </div>
+  );
+}
