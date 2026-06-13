@@ -164,6 +164,15 @@ export const NAV_ITEMS: NavGroup[] = [
     ]
   },
   {
+    group: 'AI & Intel',
+    items: [
+      { path: '/ai-board', label: 'AI Executive Board', icon: 'Cpu' },
+      { path: '/document-intel', label: 'Document Intel', icon: 'FileText' },
+      { path: '/radar', label: 'Opportunity Radar', icon: 'Radar' },
+      { path: '/risks', label: 'Risk Engine', icon: 'ShieldAlert' }
+    ]
+  },
+  {
     group: 'System',
     items: [
       { path: '/settings', label: 'Settings', icon: 'Settings' }

@@ -7,7 +7,8 @@ import {
   LayoutDashboard, Zap, Compass, Brain, Heart, CheckCircle, 
   GraduationCap, Users, Building2, UserPlus, Package, 
   Truck, TrendingUp, FolderKanban, Settings, 
-  ChevronLeft, ChevronRight, Microscope, BookOpen, Briefcase, Network
+  ChevronLeft, ChevronRight, Microscope, BookOpen, Briefcase, Network,
+  Cpu, FileText, Radar, ShieldAlert
 } from 'lucide-react';
 import { NAV_ITEMS } from '@/utils/constants';
 import { useAppStore } from '@/store/useAppStore';
@@ -31,7 +32,11 @@ const ICONS: Record<string, React.ComponentType<any>> = {
   Microscope,
   BookOpen,
   Briefcase,
-  Network
+  Network,
+  Cpu,
+  FileText,
+  Radar,
+  ShieldAlert
 };
 
 export default function Sidebar() {
