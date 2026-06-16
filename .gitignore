@@ -1,8 +1,7 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
-/node_modules
-/.pnp
+# Dependencies
+node_modules/
+**/node_modules/
+.pnp
 .pnp.*
 .yarn/*
 !.yarn/patches
@@ -10,42 +9,46 @@
 !.yarn/releases
 !.yarn/versions
 
-# testing
-/coverage
+# Testing
+coverage/
 
-# next.js
-/.next/
-/out/
+# Next.js and Bundler Outputs
+.next/
+out/
+dist/
+build/
 
-# production
-/build
+# Local Environment Variables
+.env
+.env.local
+.env.production
+.env.development
+.env*.local
+.env.test
 
-# misc
+# System-generated files
 .DS_Store
+Thumbs.db
+__MACOSX/
 *.pem
 
-# debug
+# Debug Logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
-
-# vercel
-.vercel
-
-# typescript
+# Hosting & Tooling Caches
+.vercel/
+.turbo/
+.cache/
 *.tsbuildinfo
 next-env.d.ts
+
+# Project-specific backups and caches
 /backup_vite
-
-
-# clerk configuration (can include secrets)
 /.clerk/
-
-# agent and IDE directories
 /.agents/
 /.gemini/
 /skills-lock.json
