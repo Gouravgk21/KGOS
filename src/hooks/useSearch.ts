@@ -24,7 +24,7 @@ export function useGlobalSearch(query: string): SearchResult[] {
           type: 'Goal',
           id: g.id,
           title: g.title,
-          subtitle: `Horizon: ${g.horizon}`,
+          subtitle: `Horizon: ${g.category}`,
           path: `/life-plan`
         });
       }
@@ -33,13 +33,15 @@ export function useGlobalSearch(query: string): SearchResult[] {
     // Search Projects
     const projects = await db.projects.toArray();
     projects.forEach(p => {
-      if (p.title.toLowerCase().includes(lowerQuery) || (p.objective && p.objective.toLowerCase().includes(lowerQuery))) {
+      const pTitle = p.title || p.name || '';
+      const pObjective = p.objective || p.description || '';
+      if (pTitle.toLowerCase().includes(lowerQuery) || pObjective.toLowerCase().includes(lowerQuery)) {
         results.push({
           type: 'Project',
           id: p.id,
-          title: p.title,
+          title: pTitle,
           subtitle: `Category: ${p.category}`,
-          path: `/projects/${p.id}`
+          path: `/projects`
         });
       }
     });
@@ -53,7 +55,7 @@ export function useGlobalSearch(query: string): SearchResult[] {
           id: t.id,
           title: t.title,
           subtitle: `Status: ${t.status} | Priority: ${t.priority}`,
-          path: `/execution`
+          path: `/tasks`
         });
       }
     });
@@ -61,19 +63,22 @@ export function useGlobalSearch(query: string): SearchResult[] {
     // Search B2B Leads
     const leads = await db.leads.toArray();
     leads.forEach(l => {
-      if (l.company.toLowerCase().includes(lowerQuery) || l.contact.toLowerCase().includes(lowerQuery)) {
+      const company = l.companyName || l.company || '';
+      const contact = l.contactPerson || l.contact || '';
+      const stage = l.status || l.stage || '';
+      if (company.toLowerCase().includes(lowerQuery) || contact.toLowerCase().includes(lowerQuery)) {
         results.push({
           type: 'Lead',
           id: l.id,
-          title: l.company,
-          subtitle: `Contact: ${l.contact} | Stage: ${l.stage}`,
-          path: `/business/crm/${l.id}`
+          title: company,
+          subtitle: `Contact: ${contact} | Stage: ${stage}`,
+          path: `/business/crm`
         });
       }
     });
 
     // Search Notes
-    const notes = await db.notes.toArray();
+    const notes = await db.knowledgeNotes.toArray();
     notes.forEach(n => {
       if (n.title.toLowerCase().includes(lowerQuery) || (n.content && n.content.toLowerCase().includes(lowerQuery))) {
         results.push({
@@ -81,7 +86,7 @@ export function useGlobalSearch(query: string): SearchResult[] {
           id: n.id,
           title: n.title,
           subtitle: `Category: ${n.category}`,
-          path: `/settings`
+          path: `/knowledge`
         });
       }
     });

@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../db/database';
+import { db, type Habit, type Skill, type Project, type Lead, type Product } from '../db/database';
 import { calculateHealthScore, calculatePipelineValue } from '../utils/kpi';
 
 export interface DashboardKPIs {
@@ -30,21 +30,32 @@ export function useDashboardKPIs(): DashboardKPIs | undefined {
     const healthScore = calculateHealthScore(logs);
 
     const todayStr = new Date().toISOString().split('T')[0];
-    const activeHabits = habits.filter(h => h.isActive);
-    const completedToday = activeHabits.filter(h => h.completedDates && h.completedDates.includes(todayStr)).length;
+    const activeHabits = habits.filter((h: Habit) => h.isActive);
+    const completedToday = activeHabits.filter((h: Habit) => h.completedDates && h.completedDates.includes(todayStr)).length;
     const habitCompletion = activeHabits.length > 0 ? (completedToday / activeHabits.length) * 100 : 0;
 
-    const learningScore = skills.length > 0 ? (skills.reduce((sum, s) => sum + s.level, 0) / skills.length) * 10 : 0;
+    const learningScore = skills.length > 0 ? (skills.reduce((sum: number, s: Skill) => sum + s.level, 0) / skills.length) * 10 : 0;
 
     const totalRevenue = leads
-      .filter(l => l.stage === 'CUSTOMER' || l.stage === 'REPEAT_CUSTOMER')
-      .reduce((sum, l) => sum + (Number(l.opportunityValue) || 0), 0);
+      .filter((l: Lead) => {
+        const stage = (l.status || l.stage || 'Lead').toLowerCase();
+        return stage === 'customer' || stage === 'repeat_customer' || stage === 'repeat';
+      })
+      .reduce((sum: number, l: Lead) => sum + (Number(l.opportunityValue) || 0), 0);
 
-    const activeLeadsCount = leads.filter(l => l.stage !== 'CUSTOMER' && l.stage !== 'REPEAT_CUSTOMER').length;
+    const activeLeadsCount = leads.filter((l: Lead) => {
+      const stage = (l.status || l.stage || 'Lead').toLowerCase();
+      return stage !== 'customer' && stage !== 'repeat_customer' && stage !== 'repeat';
+    }).length;
+    
     const pipelineValue = calculatePipelineValue(leads);
-    const activeCustomersCount = leads.filter(l => l.stage === 'CUSTOMER' || l.stage === 'REPEAT_CUSTOMER').length;
+    
+    const activeCustomersCount = leads.filter((l: Lead) => {
+      const stage = (l.status || l.stage || 'Lead').toLowerCase();
+      return stage === 'customer' || stage === 'repeat_customer' || stage === 'repeat';
+    }).length;
 
-    const activeProjectsCount = projects.filter(p => p.status === 'ACTIVE').length;
+    const activeProjectsCount = projects.filter((p: Project) => p.status === 'ACTIVE').length;
     const completedTasksCount = tasks.filter(t => t.status === 'DONE').length;
 
     return {
@@ -57,7 +68,7 @@ export function useDashboardKPIs(): DashboardKPIs | undefined {
       activeCustomers: activeCustomersCount,
       activeProjects: activeProjectsCount,
       completedTasks: completedTasksCount,
-      productsCount: products.filter(p => p.isActive).length,
+      productsCount: products.filter((p: Product) => p.isActive).length,
       suppliersCount: suppliers.length
     };
   });

@@ -12,7 +12,6 @@ export const useGoalStore = create<GoalStoreState>(() => ({
     return await db.goals.add({
       ...goal,
       progress: goal.progress || 0,
-      status: goal.status || 'ACTIVE',
       createdAt: new Date().toISOString()
     }) as number;
   },

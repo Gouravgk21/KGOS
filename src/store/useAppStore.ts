@@ -15,6 +15,10 @@ interface AppStoreState {
   notifications: NotificationItem[];
   clearNotifications: () => void;
   addNotification: (text: string) => void;
+  isLoggedIn: boolean;
+  setLoggedIn: (logged: boolean) => void;
+  isLocked: boolean;
+  setLocked: (locked: boolean) => void;
 }
 
 export const useAppStore = create<AppStoreState>((set) => ({
@@ -29,5 +33,9 @@ export const useAppStore = create<AppStoreState>((set) => ({
   clearNotifications: () => set({ notifications: [] }),
   addNotification: (text) => set((s) => ({
     notifications: [{ id: Date.now(), text, time: 'Just now', read: false }, ...s.notifications]
-  }))
+  })),
+  isLoggedIn: true,
+  setLoggedIn: (logged) => set({ isLoggedIn: logged }),
+  isLocked: false,
+  setLocked: (locked) => set({ isLocked: locked })
 }));

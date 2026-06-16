@@ -19,7 +19,8 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "dexie-react-hooks": ["./src/db/useLiveQueryMock.ts"]
     }
   },
   "include": [

@@ -1,0 +1,822 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Profile {
+  id                   String                @id @db.Uuid
+  name                 String
+  email                String                @unique
+  mission              String?
+  vision               String?
+  decisionStyle        String?               @map("decision_style")
+  learningStyle        String?               @map("learning_style")
+  strengths            String[]
+  weaknesses           String[]
+  createdAt            DateTime              @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt            DateTime              @default(now()) @map("updated_at") @db.Timestamptz
+  
+  // Relations
+  goals                Goal[]
+  projects             Project[]
+  tasks                Task[]
+  leads                Lead[]
+  dailyLogs            DailyLog[]
+  researchPapers       ResearchPaper[]
+  exams                Exam[]
+  knowledgeNotes       KnowledgeNote[]
+  documents            Document[]
+  transactions         Transaction[]
+  contacts             Contact[]
+  opportunities        Opportunity[]
+  timeAllocations      TimeAllocation[]
+  products             Product[]
+  suppliers            Supplier[]
+  formulations         Formulation[]
+  ingredients          Ingredient[]
+  batchRecords         BatchRecord[]
+  studySessions        StudySession[]
+  studyTopics          StudyTopic[]
+  mockTests            MockTest[]
+  contentPieces        ContentPiece[]
+  knowledgeNodes       KnowledgeNode[]
+  agentMemory          AgentMemory[]
+  notifications        Notification[]
+  healthGoals          HealthGoal[]
+  budgetCategories     BudgetCategory[]
+  automationRules      AutomationRule[]
+  phdApplications      PhdApplication[]
+  sampleRequests       SampleRequest[]
+
+  @@map("profiles")
+}
+
+model Goal {
+  id          BigInt   @id @default(autoincrement())
+  userId      String   @map("user_id") @db.Uuid
+  profile     Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  progress    Int      @default(0)
+  dueDate     DateTime? @map("due_date") @db.Date
+  category    String?  // '10 Year', '5 Year', 'Annual', 'Quarterly', 'Monthly'
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @default(now()) @map("updated_at") @db.Timestamptz
+
+  @@map("goals")
+}
+
+model Project {
+  id          BigInt    @id @default(autoincrement())
+  userId      String    @map("user_id") @db.Uuid
+  profile     Profile   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  status      String    @default("NOT_STARTED") // 'NOT_STARTED', 'PLANNING', 'ACTIVE', 'WAITING', 'COMPLETED', 'ARCHIVED'
+  priority    String    @default("MEDIUM")      // 'CRITICAL', 'HIGH', 'MEDIUM', 'LOW'
+  progress    Int       @default(0)
+  category    String    // 'General', 'Research', 'Publishing'
+  dueDate     DateTime? @map("due_date") @db.Date
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime  @default(now()) @map("updated_at") @db.Timestamptz
+  tasks       Task[]
+
+  @@map("projects")
+}
+
+model Task {
+  id          BigInt    @id @default(autoincrement())
+  userId      String    @map("user_id") @db.Uuid
+  profile     Profile   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId   BigInt?   @map("project_id")
+  project     Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  title       String
+  description String?
+  status      String    @default("TODO") // 'TODO', 'IN_PROGRESS', 'DONE', 'BLOCKED'
+  priority    String    @default("MEDIUM") // 'LOW', 'MEDIUM', 'HIGH'
+  category    String?   // 'Business', 'Research', 'Government Exams', 'Health', 'Career', 'Content', 'Personal'
+  dueDate     DateTime? @map("due_date") @db.Date
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime  @default(now()) @map("updated_at") @db.Timestamptz
+
+  @@map("tasks")
+}
+
+model Lead {
+  id               BigInt          @id @default(autoincrement())
+  userId           String          @map("user_id") @db.Uuid
+  profile          Profile         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyName      String          @map("company_name")
+  contactPerson    String          @map("contact_person")
+  phone            String?
+  email            String?
+  productInterest  String?         @map("product_interest")
+  status           String          @default("Lead") // 'Lead' | 'Contacted' | 'Qualified' | 'Sample Sent' | 'Trial' | 'Proposal' | 'Customer' | 'Repeat'
+  notes            String?
+  nextFollowUp     DateTime?       @map("next_follow_up") @db.Date
+  opportunityValue Decimal         @default(0.00) @map("opportunity_value") @db.Decimal(15, 2)
+  industry         String?
+  createdAt        DateTime        @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime        @default(now()) @map("updated_at") @db.Timestamptz
+  
+  // Relations
+  contacts         Contact[]
+  formulations     Formulation[]
+  sampleRequests   SampleRequest[]
+
+  @@map("leads")
+}
+
+model Contact {
+  id               BigInt    @id @default(autoincrement())
+  userId           String    @map("user_id") @db.Uuid
+  profile          Profile   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  leadId           BigInt?   @map("lead_id")
+  lead             Lead?     @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  name             String
+  role             String    // 'Family' | 'Friends' | 'Mentors' | 'Recruiters' | 'Customers' | 'Researchers' | 'Experts' | 'Advisors'
+  email            String?
+  phone            String?
+  linkedIn         String?   @map("linkedin")
+  type             String    @default("Business") // 'Business' | 'Personal'
+  relationshipScore Int      @default(50) @map("relationship_score")
+  interactionCount  Int      @default(0) @map("interaction_count")
+  lastInteraction   DateTime? @map("last_interaction") @db.Date
+  notes            String?
+  tags             String?
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  @@map("contacts")
+}
+
+model SampleRequest {
+  id                  BigInt       @id @default(autoincrement())
+  userId              String       @map("user_id") @db.Uuid
+  profile             Profile      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  leadId              BigInt?      @map("lead_id")
+  lead                Lead?        @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  formulationId       BigInt?      @map("formulation_id")
+  formulation         Formulation? @relation(fields: [formulationId], references: [id], onDelete: SetNull)
+  clientName          String       @map("client_name")
+  quantity            String
+  dispatchDate        DateTime?    @map("dispatch_date") @db.Date
+  status              String       @default("Planned") // 'Planned' | 'In Progress' | 'Completed' | 'Failed'
+  
+  // Trial Food Matrix & Custom Application Factors
+  applicationCategory String       @map("application_category") // Cheese, Chocolate Milk, Meat, etc.
+  foodMatrixPh        Decimal?     @map("food_matrix_ph") @db.Decimal(4, 2)
+  calciumContentPpm   Int?         @map("calcium_content_ppm")
+  processingType      String?      @map("processing_type") // UHT, Retort, HTST, Hot Fill
+  targetShelfLifeMths Int?         @map("target_shelf_life_mths")
+  storageTempC        Decimal?     @map("storage_temp_c") @db.Decimal(4, 1)
+  shearConditions     String?      @map("shear_conditions") // High, Medium, Low
+  saltTypePpm         String?      @map("salt_type_ppm") // details of salt environment
+  fatContentPct       Decimal?     @map("fat_content_pct") @db.Decimal(4, 2)
+  proteinContentPct   Decimal?     @map("protein_content_pct") @db.Decimal(4, 2)
+  solidsNonFatPct     Decimal?     @map("solids_non_fat_pct") @db.Decimal(4, 2)
+  sweetenerTypePct    String?      @map("sweetener_type_pct")
+  syneresisNoted      Boolean?     @map("syneresis_noted")
+  sensoryFeedback     Json?        @map("sensory_feedback") // JSON capturing texture, mouthfeel, flavor release
+  feedbackRating      Int?         @map("feedback_rating") // 1-5 stars
+  failureMode         String?      @map("failure_mode") // Syneresis, Wheying-off, Sedimentation, Precipitation
+  trialOutcome        String?      @map("trial_outcome")
+  nextStepAction      String?      @map("next_step_action")
+  createdAt           DateTime     @default(now()) @map("created_at") @db.Timestamptz
+
+  @@map("sample_requests")
+}
+
+model Formulation {
+  id                BigInt                  @id @default(autoincrement())
+  userId            String                  @map("user_id") @db.Uuid
+  profile           Profile                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  leadId            BigInt?                 @map("lead_id")
+  lead              Lead?                   @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  name              String
+  description       String?
+  targetApplication String                  @map("target_application")
+  processingNotes   String?                 @map("processing_notes")
+  
+  // Rheology Targets
+  targetViscosity   Float?                  @map("target_viscosity") // mPa.s
+  targetGelStrength Float?                  @map("target_gel_strength") // g/cm2
+  status            String                  // 'Draft' | 'Active' | 'Archived'
+  costPerKg         Decimal                 @map("cost_per_kg") @db.Decimal(15, 2)
+  createdAt         DateTime                @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime                @default(now()) @map("updated_at") @db.Timestamptz
+  
+  // Relations
+  ingredients       FormulationIngredient[]
+  versions          FormulationVersion[]
+  batchRecords      BatchRecord[]
+  sampleRequests    SampleRequest[]
+
+  @@map("formulations")
+}
+
+model Ingredient {
+  id                     BigInt                  @id @default(autoincrement())
+  userId                 String                  @map("user_id") @db.Uuid
+  profile                Profile                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name                   String
+  chemicalName           String?                 @map("chemical_name")
+  description            String?
+  category               String                  // 'Hydrocolloid' | 'Emulsifier' | 'Starch' | 'Salt' etc.
+  type                   String
+  
+  // Physical & Chemical Specs
+  moistureMax            Decimal?                @map("moisture_max") @db.Decimal(5, 2) // %
+  ashMax                 Decimal?                @map("ash_max") @db.Decimal(5, 2) // %
+  acidInsolubleMatterMax Decimal?                @map("acid_insoluble_matter_max") @db.Decimal(5, 2) // %
+  leadPpm                Decimal?                @map("lead_ppm") @db.Decimal(5, 3)
+  arsenicPpm             Decimal?                @map("arsenic_ppm") @db.Decimal(5, 3)
+  cadmiumPpm             Decimal?                @map("cadmium_ppm") @db.Decimal(5, 3)
+  mercuryPpm             Decimal?                @map("mercury_ppm") @db.Decimal(5, 3)
+  meshSizeSpec           String?                 @map("mesh_size_spec") // e.g. "99% pass 80 mesh"
+  phSpecRange            String?                 @map("ph_spec_range") // e.g. "6.0 - 8.0"
+  viscositySpecRange     String?                 @map("viscosity_spec_range") // e.g. "100 - 300 mPa.s"
+  gelStrengthSpecRange   String?                 @map("gel_strength_spec_range") // e.g. "50 - 150 g/cm2"
+  
+  // Microbiological Specs
+  microTvcCfuGMax        Int?                    @map("micro_tvc_cfu_g_max")
+  microYeastMoldCfuGMax  Int?                    @map("micro_yeast_mold_cfu_g_max")
+  microColiformsCfuGMax  Int?                    @map("micro_coliforms_cfu_g_max")
+  microSalmonellaNeg     Boolean?                @map("micro_salmonella_neg")
+  microEcoliNeg          Boolean?                @map("micro_ecoli_neg")
+
+  regulatoryStatus       String?                 @map("regulatory_status") // FSSAI approved, E-number
+  createdAt              DateTime                @default(now()) @map("created_at") @db.Timestamptz
+
+  // Relations
+  formulations           FormulationIngredient[]
+  suppliers              SupplierIngredient[]
+  batchIngredientLots    BatchIngredientLot[]
+
+  @@map("ingredients")
+}
+
+model FormulationIngredient {
+  id            BigInt      @id @default(autoincrement())
+  formulationId BigInt      @map("formulation_id")
+  formulation   Formulation @relation(fields: [formulationId], references: [id], onDelete: Cascade)
+  ingredientId  BigInt      @map("ingredient_id")
+  ingredient    Ingredient  @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+  percentage    Decimal     @db.Decimal(5, 2) // Recipe percentage (e.g. 12.50%)
+
+  @@map("formulation_ingredients")
+}
+
+model FormulationVersion {
+  id              BigInt      @id @default(autoincrement())
+  formulationId   BigInt      @map("formulation_id")
+  formulation     Formulation @relation(fields: [formulationId], references: [id], onDelete: Cascade)
+  version         String
+  recipeJson      String      @map("recipe_json") // Snapshot of ingredient percentages
+  processingNotes String?     @map("processing_notes")
+  costPerKg       Decimal     @map("cost_per_kg") @db.Decimal(15, 2)
+  updatedAt       DateTime    @default(now()) @map("updated_at") @db.Timestamptz
+
+  // Lab Rheology and Texture Profile Analysis (TPA) logs
+  viscosityActual   Float?    @map("viscosity_actual")
+  gelStrengthActual Float?    @map("gel_strength_actual")
+  phActual          Decimal?  @map("ph_actual") @db.Decimal(4, 2)
+  solidContentPct   Decimal?  @map("solid_content_pct") @db.Decimal(5, 2)
+  activePolymerPct  Decimal?  @map("active_polymer_pct") @db.Decimal(5, 2)
+  ashContentPct     Decimal?  @map("ash_content_pct") @db.Decimal(5, 2)
+  turbidityNtu      Float?    @map("turbidity_ntu")
+  syneresisPct      Decimal?  @map("syneresis_pct") @db.Decimal(5, 2)
+  gellingTempC      Float?    @map("gelling_temp_c")
+  meltingTempC      Float?    @map("melting_temp_c")
+  tpaHardness       Float?    @map("tpa_hardness")
+  tpaCohesiveness   Float?    @map("tpa_cohesiveness")
+  tpaElasticity     Float?    @map("tpa_elasticity")
+  tpaSpringiness    Float?    @map("tpa_springiness")
+
+  @@map("formulation_versions")
+}
+
+model SupplierIngredient {
+  id            BigInt     @id @default(autoincrement())
+  supplierId    BigInt     @map("supplier_id")
+  supplier      Supplier   @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  ingredientId  BigInt     @map("ingredient_id")
+  ingredient    Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+  pricePerKg    Decimal    @map("price_per_kg") @db.Decimal(15, 2)
+  leadTimeDays  Int        @map("lead_time_days")
+  purityGrade   String     @map("purity_grade") // Food Grade, Pharma Grade, Tech Grade
+  certification String?    // FSSAI, Halal, Kosher, ISO9001
+  createdAt     DateTime   @default(now()) @map("created_at") @db.Timestamptz
+
+  @@map("supplier_ingredients")
+}
+
+model Supplier {
+  id            BigInt               @id @default(autoincrement())
+  userId        String               @map("user_id") @db.Uuid
+  profile       Profile              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name          String
+  contactPerson String?              @map("contact_person")
+  phone         String?
+  email         String?
+  ingredients   SupplierIngredient[]
+  createdAt     DateTime             @default(now()) @map("created_at") @db.Timestamptz
+
+  @@map("suppliers")
+}
+
+model BatchRecord {
+  id                 BigInt                @id @default(autoincrement())
+  userId             String                @map("user_id") @db.Uuid
+  profile            Profile               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  batchId            String                @map("batch_id")
+  formulationId      BigInt?               @map("formulation_id")
+  formulation        Formulation?          @relation(fields: [formulationId], references: [id], onDelete: SetNull)
+  productName        String                @map("product_name")
+  targetWeight       Decimal               @map("target_weight") @db.Decimal(15, 2)
+  actualWeight       Decimal?              @map("actual_weight") @db.Decimal(15, 2)
+  yield              Decimal?              @db.Decimal(5, 2)
+  status             String                // 'Planned' | 'In Progress' | 'Completed' | 'Failed'
+  startDate          DateTime              @map("sign_date") @db.Date
+  endDate            DateTime?             @map("end_date") @db.Date
+  qcPassed           Boolean?              @map("qc_passed")
+  
+  // QA Environmental & Process Telemetry
+  ambientTempC       Decimal?              @map("ambient_temp_c") @db.Decimal(4, 1)
+  ambientHumidityPct Decimal?              @map("ambient_humidity_pct") @db.Decimal(4, 1)
+  equipmentId        String?               @map("equipment_id")
+  blendingSpeedRpm   Int?                  @map("blending_speed_rpm")
+  blendingTimeMins   Int?                  @map("blending_time_mins")
+  moistureContentPct Decimal?              @map("moisture_content_pct") @db.Decimal(4, 2)
+  meshPassPct        Decimal?              @map("mesh_pass_pct") @db.Decimal(5, 2)
+  sieveOversizePct   Decimal?              @map("sieve_oversize_pct") @db.Decimal(5, 2)
+  lotNumber          String?               @map("lot_number")
+  bagWeightKg        Decimal?              @map("bag_weight_kg") @db.Decimal(5, 2)
+  totalBagsProduced  Int?                  @map("total_bags_produced")
+  rejectionCount     Int?                  @map("rejection_count")
+  deviationNotes     String?               @map("deviation_notes")
+  notes              String?
+  createdAt          DateTime              @default(now()) @map("created_at") @db.Timestamptz
+
+  // Relations
+  ingredientLots     BatchIngredientLot[]
+
+  @@map("batch_records")
+}
+
+model BatchIngredientLot {
+  id                BigInt      @id @default(autoincrement())
+  batchRecordId     BigInt      @map("batch_record_id")
+  batchRecord       BatchRecord @relation(fields: [batchRecordId], references: [id], onDelete: Cascade)
+  ingredientId      BigInt      @map("ingredient_id")
+  ingredient        Ingredient  @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+  vendorLotNumber   String      @map("vendor_lot_number")
+  quantityUsedKg    Decimal     @map("quantity_used_kg") @db.Decimal(15, 2)
+
+  @@map("batch_ingredient_lots")
+}
+
+model PhdApplication {
+  id                 BigInt     @id @default(autoincrement())
+  userId             String     @map("user_id") @db.Uuid
+  profile            Profile    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  university         String
+  program            String
+  deadline           DateTime   @db.Date
+  status             String     @default("Researching") // 'Researching' | 'Contacted' | 'Applied' | 'Accepted' | 'Rejected'
+  
+  // Rankings
+  qsRanking          Int?       @map("qs_ranking")
+  usNewsRanking      Int?       @map("us_news_ranking")
+
+  // Standardized Tests
+  greVerbal          Int?       @map("gre_verbal")
+  greQuantitative    Int?       @map("gre_quantitative")
+  greAnalytical      Decimal?   @map("gre_analytical") @db.Decimal(2, 1)
+  toeflTotal         Int?       @map("toefl_total")
+  ieltsScore         Decimal?   @map("ielts_score") @db.Decimal(2, 1)
+
+  // Advisor Info
+  professorName       String?    @map("professor_name")
+  advisorResearchArea String?    @map("advisor_research_area")
+  advisorEmail        String?    @map("advisor_email")
+  
+  // Credentials & Funding
+  portalUrl          String?    @map("portal_url")
+  applicationFee     Decimal?   @map("application_fee") @db.Decimal(10, 2)
+  lorStatus          String?    @map("lor_status") // e.g. "2/3 letters received"
+  sopStatus          String     @default("Not Started") @map("sop_status") // 'Not Started' | 'Drafting' | 'Review' | 'Done'
+  scholarship        String?
+  fundingAmount      Decimal?   @map("funding_amount") @db.Decimal(15, 2)
+  stipendAmtAnnual   Decimal?   @map("stipend_amt_annual") @db.Decimal(15, 2)
+  tuitionWaiverPct   Decimal?   @map("tuition_waiver_pct") @db.Decimal(5, 2)
+  
+  // Draft URLs
+  sopDraftUrl        String?    @map("sop_draft_url")
+  cvDraftUrl         String?    @map("cv_draft_url")
+  personalStatementUrl String?  @map("personal_statement_url")
+  transcriptsUploaded Boolean   @default(false) @map("transcripts_uploaded")
+
+  // Visa Tracking
+  i20Status          String     @default("Not Applicable") @map("i20_status") // 'Not Applicable' | 'Pending' | 'Issued'
+  sevisPaid          Boolean    @default(false) @map("sevis_paid")
+  visaInterviewDate  DateTime?  @map("visa_interview_date") @db.Date
+  visaStatus         String     @default("Not Applicable") @map("visa_status") // 'Not Applicable' | 'Pending' | 'Approved' | 'Denied'
+
+  notes              String?
+  createdAt          DateTime   @default(now()) @map("created_at") @db.Timestamptz
+  
+  // Relations
+  advisorContacts    AdvisorContact[]
+
+  @@map("phd_applications")
+}
+
+model AdvisorContact {
+  id               BigInt         @id @default(autoincrement())
+  phdApplicationId BigInt         @map("phd_application_id")
+  phdApplication   PhdApplication @relation(fields: [phdApplicationId], references: [id], onDelete: Cascade)
+  date             DateTime       @db.Date
+  interactionType  String         @map("interaction_type") // 'Cold Email' | 'Zoom Interview' | 'In Person' | 'Follow Up'
+  subject          String
+  contentSummary   String         @map("content_summary")
+  responseReceived Boolean        @map("response_received")
+  replyDate        DateTime?      @map("reply_date") @db.Date
+  responseDelayDays Int?          @map("response_delay_days")
+  sentiment        String?        // 'Positive' | 'Neutral' | 'Negative' | 'No Reply'
+  nextStep         String?        @map("next_step")
+  followUpDueDate  DateTime?      @map("follow_up_due_date") @db.Date
+  correspondenceHistory String?   @map("correspondence_history")
+  createdAt        DateTime       @default(now()) @map("created_at") @db.Timestamptz
+
+  @@map("advisor_contacts")
+}
+
+model ResearchPaper {
+  id                  BigInt   @id @default(autoincrement())
+  userId              String   @map("user_id") @db.Uuid
+  profile             Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title               String
+  topic               String
+  status              String   @default("Planned") // 'Planned', 'Reading', 'Summarized', 'Referenced'
+  summary             String?
+  authors             String?
+  journal             String?
+  year                String?
+  doi                 String?
+  abstract            String?
+  citations           Int      @default(0)
+  keywords            String?  // comma-separated
+  aiSummary           String?  @map("ai_summary")
+  
+  // Advanced BibTeX & Lit Review Metadata
+  bibtexKey           String?  @map("bibtex_key")
+  citationKey         String?  @map("citation_key")
+  journalImpactFactor Float?   @map("journal_impact_factor")
+  quartile            String?  // 'Q1' | 'Q2' | 'Q3' | 'Q4'
+  readingProgress     Int      @default(0) @map("reading_progress") // 0 to 100
+  pdfUrl              String?  @map("pdf_url")
+  bibMetadata         Json?    @map("bib_metadata")
+
+  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt           DateTime @default(now()) @map("updated_at") @db.Timestamptz
+
+  @@map("research_papers")
+}
+
+model Exam {
+  id              BigInt    @id @default(autoincrement())
+  userId          String    @map("user_id") @db.Uuid
+  profile         Profile   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name            String
+  applicationDate DateTime? @map("application_date") @db.Date
+  examDate        DateTime? @map("exam_date") @db.Date
+  status          String
+  notes           String?
+  studyHours      Decimal   @default(0.00) @map("study_hours") @db.Decimal(6, 2)
+  targetHours     Decimal?  @map("target_hours") @db.Decimal(6, 2)
+  maxMarks        Int?      @map("max_marks")
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime  @default(now()) @map("updated_at") @db.Timestamptz
+
+  @@map("exams")
+}
+
+model StudySession {
+  id              BigInt   @id @default(autoincrement())
+  userId          String   @map("user_id") @db.Uuid
+  profile         Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  examId          BigInt?  @map("exam_id")
+  subject         String
+  topic           String
+  durationMinutes Int      @map("duration_minutes")
+  date            DateTime @db.Date
+  notes           String?
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  @@map("study_sessions")
+}
+
+model StudyTopic {
+  id                  BigInt      @id @default(autoincrement())
+  userId              String      @map("user_id") @db.Uuid
+  profile             Profile     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  examId              BigInt?     @map("exam_id")
+  name                String
+  subject             String
+  status              String      // 'Not Started' | 'In Progress' | 'Completed'
+  importance          Int         // 1 | 2 | 3
+  syllabusWeightagePct Decimal?   @map("syllabus_weightage_pct") @db.Decimal(5, 2)
+  masteryLevel        Int         @default(0) @map("mastery_level") // 0 to 100
+  lastRevised         DateTime?   @map("last_revised") @db.Date
+  nextRevision        DateTime?   @map("next_revision") @db.Date
+  createdAt           DateTime    @default(now()) @map("created_at") @db.Timestamptz
+  
+  // Relations
+  flashcards          Flashcard[]
+
+  @@map("study_topics")
+}
+
+model Flashcard {
+  id             BigInt     @id @default(autoincrement())
+  userId         String     @map("user_id") @db.Uuid
+  studyTopicId   BigInt     @map("study_topic_id")
+  studyTopic     StudyTopic @relation(fields: [studyTopicId], references: [id], onDelete: Cascade)
+  front          String
+  back           String
+  easeFactor     Decimal    @default(2.50) @map("ease_factor") @db.Decimal(4, 2)
+  intervalDays   Int        @default(0) @map("interval_days")
+  repetitions    Int        @default(0)
+  nextReview     DateTime   @map("next_review") @db.Timestamptz
+  createdAt      DateTime   @default(now()) @map("created_at") @db.Timestamptz
+
+  @@map("flashcards")
+}
+
+model MockTest {
+  id             BigInt   @id @default(autoincrement())
+  userId         String   @map("user_id") @db.Uuid
+  profile        Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  examId         BigInt?  @map("exam_id")
+  title          String
+  subject        String
+  totalQuestions Int      @map("total_questions")
+  correctAnswers Int      @map("correct_answers")
+  timeTaken      Int      @map("time_taken")
+  dateTaken      DateTime @map("date_taken") @db.Date
+  questions      String?  // JSON string
+  errorAnalysis  Json?    @map("error_analysis")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  @@map("mock_tests")
+}
+
+model DailyLog {
+  id                 BigInt   @id @default(autoincrement())
+  userId             String   @map("user_id") @db.Uuid
+  profile            Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date               DateTime @unique @db.Date
+  
+  // Physical Health & Vitals
+  weight             Decimal? @db.Decimal(5, 2)
+  sleepHours         Decimal? @map("sleep_hours") @db.Decimal(4, 2)
+  sleepQuality       Int?     @map("sleep_quality")
+  waterIntakeMl      Int?     @map("water_intake_ml")
+  exerciseMins       Int?     @map("exercise_mins")
+  energyLevel        Int?     @map("energy_level")
+  moodLevel          Int?     @map("mood_level")
+  stressLevel        Int?     @map("stress_level")
+  calorieIntakeKcal  Int?     @map("calorie_intake_kcal")
+  proteinIntakeG     Int?     @map("protein_intake_g")
+  stepsCount         Int?     @map("steps_count")
+  heartRateResting   Int?     @map("heart_rate_resting")
+  bloodPressureSys   Int?     @map("blood_pressure_sys")
+  bloodPressureDia   Int?     @map("blood_pressure_dia")
+
+  // Mental Health & Daily Reflections
+  priorities         String[]
+  wins               String[]
+  challenges         String[]
+  learnings          String[]
+  notes              String?
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  @@map("daily_logs")
+}
+
+model KnowledgeNote {
+  id        BigInt   @id @default(autoincrement())
+  userId    String   @map("user_id") @db.Uuid
+  profile   Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  content   String?
+  tags      String[]
+  category  String?  // 'Notes', 'Research', 'Business Knowledge', 'Ideas', 'Government Exams', 'Career'
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz
+
+  @@map("knowledge_notes")
+}
+
+model Document {
+  id                  BigInt        @id @default(autoincrement())
+  userId              String        @map("user_id") @db.Uuid
+  profile             Profile       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fileName            String        @map("file_name")
+  fileUrl             String        @map("file_url")
+  fileType            String        @map("file_type")
+  ocrExtractedContent String?       @map("ocr_extracted_content")
+  metadata            Json          @default("{}")
+  uploadedAt          DateTime      @default(now()) @map("uploaded_at") @db.Timestamptz
+  vectorChunks        VectorStore[]
+
+  @@map("documents")
+}
+
+model Transaction {
+  id          BigInt   @id @default(autoincrement())
+  userId      String   @map("user_id") @db.Uuid
+  profile     Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date        DateTime @db.Date
+  amount      Decimal  @db.Decimal(15, 2)
+  type        String   // 'INCOME', 'EXPENSE', 'INVESTMENT'
+  category    String
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  @@map("transactions")
+}
+
+model Opportunity {
+  id             BigInt   @id @default(autoincrement())
+  userId         String   @map("user_id") @db.Uuid
+  profile        Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title          String
+  source         String   // 'Grants', 'Conferences', 'Recruiters', 'Partnerships', 'Customers', 'Export'
+  roiScore       Int?     @map("roi_score")
+  revenueImpact  Decimal  @default(0.00) @map("revenue_impact") @db.Decimal(15, 2)
+  alignmentScore Int?     @map("alignment_score")
+  effortScore    Int?     @map("effort_score")
+  notes          String?
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  @@map("opportunities")
+}
+
+model TimeAllocation {
+  id           BigInt   @id @default(autoincrement())
+  userId       String   @map("user_id") @db.Uuid
+  profile      Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date         DateTime @db.Date
+  category     String   // 'Health', 'Business', 'Research', 'Exams', 'Career', 'Relationships', 'Learning', 'Brand'
+  hoursPlanned Decimal  @map("hours_planned") @db.Decimal(4, 2)
+  hoursActual  Decimal  @map("hours_actual") @db.Decimal(4, 2)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  @@map("time_allocations")
+}
+
+model Product {
+  id        BigInt   @id @default(autoincrement())
+  userId    String   @map("user_id") @db.Uuid
+  profile   Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  category  String
+  isActive  Boolean? @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  @@map("products")
+}
+
+model VectorStore {
+  id           String   @id @default(uuid()) @db.Uuid
+  documentId   BigInt?  @map("document_id")
+  document     Document? @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  chunkIndex   Int      @map("chunk_index")
+  chunkContent String   @map("chunk_content")
+  embedding    Unsupported("vector(1536)")?
+  metadata     Json     @default("{}")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  @@map("vector_store")
+}
+
+model AuditLog {
+  id        BigInt   @id @default(autoincrement())
+  userId    String?  @map("user_id") @db.Uuid
+  tableName String   @map("table_name")
+  recordId  BigInt   @map("record_id")
+  action    String
+  oldData   Json?    @map("old_data")
+  newData   Json?    @map("new_data")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  @@map("audit_logs")
+}
+
+model ContentPiece {
+  id            BigInt    @id @default(autoincrement())
+  userId        String    @map("user_id") @db.Uuid
+  profile       Profile   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title         String
+  type          String    // 'LinkedIn' | 'Newsletter' | 'Article' | 'Tweet' | 'Thread'
+  status        String    // 'Idea' | 'Draft' | 'Review' | 'Scheduled' | 'Published'
+  content       String?
+  tags          String?
+  scheduledDate DateTime? @map("scheduled_date") @db.Date
+  publishedDate DateTime? @map("published_date") @db.Date
+  impressions   Int?
+  engagements   Int?
+  platform      String?
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  @@map("content_pieces")
+}
+
+model KnowledgeNode {
+  id        BigInt   @id @default(autoincrement())
+  userId    String   @map("user_id") @db.Uuid
+  profile   Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  type      String   // 'Person' | 'Research' | 'Ingredient' | 'Project' | 'Company' | 'Idea' | 'Document' | 'Customer' | 'Publication' | 'Task'
+  content   String?
+  tags      String?
+  linkedIds String   @map("linked_ids")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  @@map("knowledge_nodes")
+}
+
+model AgentMemory {
+  id        BigInt   @id @default(autoincrement())
+  userId    String   @map("user_id") @db.Uuid
+  profile   Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  agentId   String   @map("agent_id")
+  agentName String   @map("agent_name")
+  content   String
+  type      String   // 'fact' | 'context' | 'task' | 'preference'
+  relatedId BigInt?  @map("related_id")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  @@map("agent_memory")
+}
+
+model Notification {
+  id        BigInt   @id @default(autoincrement())
+  userId    String   @map("user_id") @db.Uuid
+  profile   Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  type      String   // 'info' | 'warning' | 'success' | 'error'
+  read      Boolean
+  link      String?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  @@map("notifications")
+}
+
+model HealthGoal {
+  id        BigInt    @id @default(autoincrement())
+  userId    String    @map("user_id") @db.Uuid
+  profile   Profile   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  metric    String    // 'weight' | 'sleep' | 'exercise' | 'water' | 'energy'
+  target    Decimal   @db.Decimal(10, 2)
+  unit      String
+  deadline  DateTime? @db.Date
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  @@map("health_goals")
+}
+
+model BudgetCategory {
+  id           BigInt   @id @default(autoincrement())
+  userId       String   @map("user_id") @db.Uuid
+  profile      Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name         String
+  monthlyLimit Decimal  @map("monthly_limit") @db.Decimal(15, 2)
+  spent        Decimal  @map("spent") @db.Decimal(15, 2)
+  month        String
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  @@map("budget_categories")
+}
+
+model AutomationRule {
+  id         BigInt    @id @default(autoincrement())
+  userId     String    @map("user_id") @db.Uuid
+  profile    Profile   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String
+  trigger    String
+  conditions String    // JSON string
+  actions    String    // JSON string
+  isActive   Boolean   @map("is_active")
+  lastRun    DateTime? @map("last_run") @db.Timestamptz
+  runCount   Int       @map("run_count")
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  @@map("automation_rules")
+}

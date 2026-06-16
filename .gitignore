@@ -41,3 +41,11 @@ yarn-error.log*
 next-env.d.ts
 /backup_vite
 
+
+# clerk configuration (can include secrets)
+/.clerk/
+
+# agent and IDE directories
+/.agents/
+/.gemini/
+/skills-lock.json

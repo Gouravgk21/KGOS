@@ -128,18 +128,17 @@ export const NAV_ITEMS: NavGroup[] = [
   {
     group: 'Command',
     items: [
-      { path: '/', label: 'Dashboard', icon: 'LayoutDashboard' },
-      { path: '/execution', label: 'Execution', icon: 'Zap' }
+      { path: '/', label: 'Command Center', icon: 'LayoutDashboard' },
+      { path: '/tasks', label: 'Execution Engine', icon: 'Zap' },
+      { path: '/reporting', label: 'Analytics OS', icon: 'TrendingUp' }
     ]
   },
   {
     group: 'Life',
     items: [
-      { path: '/life-plan', label: 'Life Plan', icon: 'Compass' },
-      { path: '/self-mastery', label: 'Self Mastery', icon: 'Brain' },
-      { path: '/self-mastery/health', label: 'Health', icon: 'Heart' },
-      { path: '/self-mastery/habits', label: 'Habits', icon: 'CheckCircle' },
-      { path: '/self-mastery/development', label: 'Development', icon: 'GraduationCap' },
+      { path: '/digital-twin', label: 'Digital Twin', icon: 'Brain' },
+      { path: '/self-mastery/health', label: 'Health OS', icon: 'Heart' },
+      { path: '/reviews', label: 'Daily Reviews', icon: 'BookOpen' },
       { path: '/relationships', label: 'Relationships', icon: 'Users' },
       { path: '/wealth', label: 'Wealth OS', icon: 'IndianRupee' }
     ]
@@ -147,19 +146,20 @@ export const NAV_ITEMS: NavGroup[] = [
   {
     group: 'Business',
     items: [
-      { path: '/business', label: 'KAFS ERP', icon: 'Building2' },
+      { path: '/business', label: 'KAFS B2B ERP', icon: 'Building2' },
+      { path: '/formulation-lab', label: 'Formulation Lab', icon: 'FlaskConical' },
       { path: '/business/crm', label: 'CRM', icon: 'UserPlus' },
       { path: '/business/products', label: 'Products', icon: 'Package' },
-      { path: '/business/suppliers', label: 'Suppliers', icon: 'Truck' },
-      { path: '/business/sales', label: 'Sales', icon: 'TrendingUp' }
+      { path: '/business/suppliers', label: 'Suppliers', icon: 'Truck' }
     ]
   },
   {
     group: 'Growth',
     items: [
-      { path: '/projects', label: 'Projects', icon: 'FolderKanban' },
+      { path: '/projects', label: 'Projects OS', icon: 'FolderKanban' },
       { path: '/research', label: 'Research OS', icon: 'Microscope' },
-      { path: '/exams', label: 'Exams OS', icon: 'BookOpen' },
+      { path: '/publication-os', label: 'Publication OS', icon: 'FileText' },
+      { path: '/exams', label: 'Exam OS', icon: 'GraduationCap' },
       { path: '/career', label: 'Career OS', icon: 'Briefcase' },
       { path: '/knowledge', label: 'Knowledge Graph', icon: 'Network' }
     ]

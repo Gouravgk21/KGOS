@@ -1,0 +1,397 @@
+{
+  "name": "KGOS X 2031 Automation Hub Workflows",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "lead-sync",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        100,
+        200
+      ],
+      "id": "webhook-lead-sync",
+      "name": "B2B Lead Inbox Webhook"
+    },
+    {
+      "parameters": {
+        "model": "gpt-4-turbo",
+        "messages": {
+          "messageValues": [
+            {
+              "role": "system",
+              "content": "You are the AI Sales Director of KAFS ERP. Parse this inbound email body. Extract the sender's Company Name, Contact Person, Phone, Email, and Product Interest (usually Carrageenan, Hydrocolloids, or stabilizer blends). Format your response as a valid JSON object."
+            },
+            {
+              "role": "user",
+              "content": "={{$json.body.emailText}}"
+            }
+          ]
+        },
+        "options": {
+          "responseFormat": "json_object"
+        }
+      },
+      "type": "n8n-nodes-base.openAiChat",
+      "typeVersion": 1,
+      "position": [
+        300,
+        200
+      ],
+      "id": "openai-lead-parser",
+      "name": "Parse Lead Info"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3000/api/leads/sync",
+        "sendHeaders": true,
+        "headers": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "companyName",
+              "value": "={{$json.message.content.companyName}}"
+            },
+            {
+              "name": "contactPerson",
+              "value": "={{$json.message.content.contactPerson}}"
+            },
+            {
+              "name": "email",
+              "value": "={{$json.message.content.email}}"
+            },
+            {
+              "name": "productInterest",
+              "value": "={{$json.message.content.productInterest}}"
+            },
+            {
+              "name": "status",
+              "value": "Lead"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        500,
+        200
+      ],
+      "id": "http-lead-sync",
+      "name": "Push to public.leads"
+    },
+    {
+      "parameters": {
+        "path": "linkedin-gen",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        100,
+        400
+      ],
+      "id": "webhook-content-gen",
+      "name": "LinkedIn Generator Webhook"
+    },
+    {
+      "parameters": {
+        "model": "gpt-4-turbo",
+        "messages": {
+          "messageValues": [
+            {
+              "role": "system",
+              "content": "You are the AI Brand Director. Compose a professional, high-engagement LinkedIn post based on the following brand pillars: Food Systems Thinking, Hydrocolloid Science, Product Development, Manufacturing Insights, Research Translation. Style: academic yet readable, formatting with clean whitespace."
+            },
+            {
+              "role": "user",
+              "content": "Topic: ={{$json.body.topic}}. Supporting details: ={{$json.body.details}}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.openAiChat",
+      "typeVersion": 1,
+      "position": [
+        300,
+        400
+      ],
+      "id": "openai-brand-composer",
+      "name": "LinkedIn Content Builder"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.linkedin.com/v2/ugcPosts",
+        "sendHeaders": true,
+        "headers": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer ={{$json.secrets.linkedin_token}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "rawjson",
+        "rawJsonBody": "{\n  \"author\": \"urn:li:person:kumar_gourav\",\n  \"lifecycleState\": \"PUBLISHED\",\n  \"specificContent\": {\n    \"com.linkedin.ugc.ShareContent\": {\n      \"shareCommentary\": {\n        \"text\": \"={{$json.message.content}}\"\n      },\n      \"shareMediaCategory\": \"NONE\"\n    }\n  },\n  \"visibility\": {\n    \"com.linkedin.ugc.MemberNetworkVisibility\": \"PUBLIC\"\n  }\n}"
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        500,
+        400
+      ],
+      "id": "http-linkedin-post",
+      "name": "Publish UGC Post"
+    },
+    {
+      "parameters": {
+        "path": "scholar-scrape",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        100,
+        600
+      ],
+      "id": "webhook-scholar-scrape",
+      "name": "Google Scholar Webhook"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://serpapi.com/search.json?engine=google_scholar&q=Carrageenan+rheology&api_key={{$json.secrets.serpapi_key}}",
+        "sendHeaders": false,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        300,
+        600
+      ],
+      "id": "http-scholar-scrape",
+      "name": "Fetch Scholar Papers"
+    },
+    {
+      "parameters": {
+        "model": "gpt-4-turbo",
+        "messages": {
+          "messageValues": [
+            {
+              "role": "system",
+              "content": "Filter the following scraped papers list. Return only those that directly detail food stabilization, dairy emulsification, or Kappa-Carrageenan synergy. Extract paper titles and links."
+            },
+            {
+              "role": "user",
+              "content": "={{$json.organic_results}}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.openAiChat",
+      "typeVersion": 1,
+      "position": [
+        500,
+        600
+      ],
+      "id": "openai-scholar-filter",
+      "name": "Research Filter"
+    },
+    {
+      "parameters": {
+        "path": "budget-audit",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        100,
+        800
+      ],
+      "id": "webhook-budget-audit",
+      "name": "Budget Variance Trigger"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://localhost:3000/api/transactions/summary",
+        "sendHeaders": false
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        300,
+        800
+      ],
+      "id": "http-fetch-ledger",
+      "name": "Query Local Ledger"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$json.expenses}}",
+              "operation": "larger",
+              "value2": "={{$json.budget_limit}}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        500,
+        800
+      ],
+      "id": "if-budget-variance",
+      "name": "Check Budget Limit"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.whatsapp.com/v1/messages",
+        "sendHeaders": true,
+        "headers": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer ={{$json.secrets.whatsapp_token}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "to",
+              "value": "kumar_gourav"
+            },
+            {
+              "name": "message",
+              "value": "⚠️ Budget Alert: Expenses have reached ={{$json.expenses}} which is higher than your threshold ={{$json.budget_limit}}. Review CapEx transactions."
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        700,
+        750
+      ],
+      "id": "http-whatsapp-variance-alert",
+      "name": "Send WhatsApp Variance Alert"
+    }
+  ],
+  "connections": {
+    "B2B Lead Inbox Webhook": {
+      "main": [
+        [
+          {
+            "node": "Parse Lead Info",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Lead Info": {
+      "main": [
+        [
+          {
+            "node": "Push to public.leads",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LinkedIn Generator Webhook": {
+      "main": [
+        [
+          {
+            "node": "LinkedIn Content Builder",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LinkedIn Content Builder": {
+      "main": [
+        [
+          {
+            "node": "Publish UGC Post",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Scholar Webhook": {
+      "main": [
+        [
+          {
+            "node": "Fetch Scholar Papers",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Scholar Papers": {
+      "main": [
+        [
+          {
+            "node": "Research Filter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Budget Variance Trigger": {
+      "main": [
+        [
+          {
+            "node": "Query Local Ledger",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Local Ledger": {
+      "main": [
+        [
+          {
+            "node": "Check Budget Limit",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Budget Limit": {
+      "main": [
+        [
+          {
+            "node": "Send WhatsApp Variance Alert",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
